@@ -1,6 +1,6 @@
 #機器碼
 
-'''
+```
 1: #include <stdio.h>
 2:
 3: int power (int a, int n){
@@ -73,4 +73,4 @@
     PSH
     PRTF
     ADJ  2
-'''
+```
