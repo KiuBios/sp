@@ -1,4 +1,4 @@
-# MachineCode
+# Machine Code
 
 ```
 1: #include <stdio.h>
