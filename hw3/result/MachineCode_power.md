@@ -1,4 +1,4 @@
-#機器碼
+# MachineCode
 
 ```
 1: #include <stdio.h>
