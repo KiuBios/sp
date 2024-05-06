@@ -40,7 +40,6 @@ int serv(int client_fds[], int client_count) {
     return 0;
   }
 
-  //使用緩衝區減少多線程的競爭
   size_t output_len = 0; // 初設 output 的長度為0
   char buf[SMAX], output[SMAX];
   while (fgets(buf, SMAX, fp) != NULL) { // 將 fp 一行內容讀取到 buf ，並在換行時(讀完整個輸出)停止讀取。
