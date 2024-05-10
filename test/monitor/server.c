@@ -2,7 +2,8 @@
 #include <pthread.h>
 
 #define MAX_CLIENTS 5 // 最大客戶端數量
-
+int client_fds[MAX_CLIENTS]; // 用於存儲每個客戶端的連接符
+int client_count = 0; // 目前連接的客戶端數量
 struct ThreadArgs {
   int connfd;
   int output_len;
@@ -27,7 +28,6 @@ void *client_print(void *arg) {
 int serv(int client_fds[], int client_count) {
   char cmd[SMAX];
   printf("$ ");           // 印出提示訊息
-  //if (fgets(cmd, SMAX, stdin) == NULL) return 0; // 等待使用者輸入命令!
   if (scanf("%s", cmd) != 1) return 0;
   if (strncmp(cmd, "exit", 4)==0) return 0; // 若是 exit 則離開！
   strtok(cmd, "\n");                     // 把 \n 去除
@@ -40,7 +40,6 @@ int serv(int client_fds[], int client_count) {
     return 0;
   }
 
-  //使用緩衝區減少多線程的競爭
   size_t output_len = 0; // 初設 output 的長度為0
   char buf[SMAX], output[SMAX];
   while (fgets(buf, SMAX, fp) != NULL) { // 將 fp 一行內容讀取到 buf ，並在換行時(讀完整個輸出)停止讀取。
@@ -71,28 +70,26 @@ int serv(int client_fds[], int client_count) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
-  int port = (argc >= 2) ? atoi(argv[1]) : PORT;
+void *accept_client(void *arg) {
+  int *port_ptr = (int *)arg;
+  int port = *port_ptr;
   net_t net;
   net_init(&net, TCP, SERVER, port, NULL);
   net_bind(&net);
   net_listen(&net);
+  while (1) {
+    int connfd = net_accept(&net); // 等待連線進來
+    assert(connfd >= 0);;
+    // 將客戶端的連接符保存到數組中
+    client_fds[client_count++] = connfd;
+  }   
+}
 
-  int client_fds[MAX_CLIENTS]; // 用於存儲每個客戶端的連接符
-  int client_count = 0; // 目前連接的客戶端數量
-  int client_num;
-  printf("How many clients (1 to 5) ?\n");
-  scanf("%d", &client_num);
-  int i=0;
-  while(1) { // 主迴圈：等待 client 連進來，然後啟動 serv 為其服務
-    while (i < client_num) {
-      int connfd = net_accept(&net); // 等待連線進來
-      assert(connfd >= 0);
-
-      // 將客戶端的連接符保存到數組中
-      client_fds[client_count++] = connfd;
-      i++;
-    }
+int main(int argc, char *argv[]) {
+  int port = (argc >= 2) ? atoi(argv[1]) : PORT;
+  pthread_t thread_net;
+  pthread_create(&thread_net, NULL, &accept_client, &port);  
+  while (1) {
     serv(client_fds, client_count);
   }
 
