@@ -2,8 +2,10 @@
 #include <pthread.h>
 
 #define MAX_CLIENTS 5 // 最大客戶端數量
+
 int client_fds[MAX_CLIENTS]; // 用於存儲每個客戶端的連接符
 int client_count = 0; // 目前連接的客戶端數量
+
 struct ThreadArgs {
   int connfd;
   int output_len;
@@ -17,8 +19,6 @@ void *client_print(void *arg) {
   int output_len = args->output_len;
   char *cmd = args->cmd;
   char *output = args->output;
-  //printf("%s\n", cmd);
-  //printf("%s\n", output);
   write(connfd, cmd, strlen(cmd)+1);
   sleep (1); // 避免競爭
   write(connfd, output, output_len+1); // 將output傳給 client
@@ -53,12 +53,10 @@ int serv(int client_fds[], int client_count) {
     }
   }
   pclose(fp);  
-  //printf("%s!\n", output);
   for (int i = 0; i < client_count; i++){
     int connfd = client_fds[i];
     pthread_t threads[MAX_CLIENTS];
     if (connfd > 0) {
-      //printf("%d,serv\n",connfd);
       struct ThreadArgs *args = malloc(sizeof(struct ThreadArgs));
       args->connfd = connfd;
       args->output_len = output_len;
@@ -79,9 +77,10 @@ void *accept_client(void *arg) {
   net_listen(&net);
   while (1) {
     int connfd = net_accept(&net); // 等待連線進來
-    assert(connfd >= 0);;
-    // 將客戶端的連接符保存到數組中
-    client_fds[client_count++] = connfd;
+    if (connfd > 0) {
+      // 將客戶端的連接符保存到數組中
+      client_fds[client_count++] = connfd;
+    }
   }   
 }
 

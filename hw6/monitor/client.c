@@ -16,9 +16,10 @@ int main(int argc, char *argv[]) {
 
     sleep(2);                               // 休息一秒鐘
     int n = read(net.sock_fd, output, SMAX); // 讀取 server 傳回來的訊息
-    assert(n > 0);
-    output[n-1] = '\0';                   // 字串結尾，把最後一個 \n 去掉!
-    puts(output);                         // 顯示回應訊息
+    if (n > 0){
+      output[n-1] = '\0';                   // 字串結尾，把最後一個 \n 去掉!
+      puts(output);                         // 顯示回應訊息
+    }
   }
   close(net.sock_fd);
   return 0;
